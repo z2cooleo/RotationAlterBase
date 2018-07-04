@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ServiceProcess;
+using System.Diagnostics;
 
 namespace RotationAlterBase
 {
@@ -59,7 +60,32 @@ namespace RotationAlterBase
                 if (!serviceFG.ServiceHandle.IsInvalid && serviceFG.Status == ServiceControllerStatus.Running)
                 {
                     serviceFG.Stop();
-                    serviceFG.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(120));
+                    try
+                    {
+                        serviceFG.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(120));
+                    }
+                    catch
+                    {
+                        if (serviceFG.Status != ServiceControllerStatus.Stopped)
+                        {
+                            Process[] processlist = Process.GetProcesses();
+                            foreach (Process theprocess in processlist)
+                            {
+                                if (theprocess.ProcessName == "FgIndexerProc")
+                                {
+                                    try
+                                    {
+                                        theprocess.Kill();
+                                        WriteLog.Write("Process is stuck but was kill successful");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        WriteLog.Write(ex.ToString());
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 WriteLog.Write("Service " + serviceName + " disabled cuccess!");
             }
@@ -68,6 +94,6 @@ namespace RotationAlterBase
                 WriteLog.Write("Service " + serviceName + " not disabled");
                 WriteLog.Write(ex.ToString());
             }
-}
+        }
     }
 }

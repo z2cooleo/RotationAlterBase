@@ -14,12 +14,14 @@ namespace RotationAlterBase
         }
         static public string Write(string str)
         {
-            System.IO.File.AppendAllText(path, str + Environment.NewLine);
+            string s = DateTime.Now + "    " + str;
+            System.IO.File.AppendAllText(path, s);
             return str;
         }
         static public string Write(string firstStr, string secondStr)
         {
-            System.IO.File.AppendAllText(path, firstStr+": "+ secondStr + Environment.NewLine);
+            string str = DateTime.Now + "    " + firstStr + ": " + secondStr + Environment.NewLine;
+            System.IO.File.AppendAllText(path, str);
             return secondStr;
         }
     }
