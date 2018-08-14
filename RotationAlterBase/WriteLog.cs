@@ -14,7 +14,7 @@ namespace RotationAlterBase
         }
         static public string Write(string str)
         {
-            string s = DateTime.Now + "    " + str;
+            string s = DateTime.Now + "    " + str + Environment.NewLine;
             System.IO.File.AppendAllText(path, s);
             return str;
         }

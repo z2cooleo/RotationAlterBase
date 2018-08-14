@@ -12,6 +12,7 @@ $fastTableSpace = "auto" # Имя Таблспэйса на быстром но�
 $slowTableSpace = "auto" # Имя таблспэ	с на медленной хранилке
 $fastTableSpacePath = "auto" # Путь для хранения быстрого индекса
 $slowTableSpacePath = "auto" # Путь для хранения индекса, на медленном насителе.
+$maintenanceDB = "postgres" # БД для обслуживания
 #------------------------------------------------------------------------------------
 $fgStConfigXML = "C:\ProgramData\Falcongaze SecureTower\FgStDPConfig.xml"
 $fgStConfigYaml = "C:\ProgramData\Falcongaze SecureTower\SecureTowerServer\conf\config.yaml"
@@ -53,9 +54,10 @@ $prevDbConnString = [Environment]::GetEnvironmentVariable("FGST_PREVIOUS_DB_CONN
 	$args = $args + " " +$prevDbConnString;
 	$args = $args + " fastTableSpace="+$fastTableSpace.Replace(' ','?')
 	$args = $args + " slowTableSpace="+$slowTableSpace.Replace(' ','?')
+	$args = $args + " maintenanceDB"+$maintenanceDB
 	#$args | Out-File $logPath"1.txt"
 
-	Start-Process -FilePath $app -ArgumentList $args -Verb runAs -WindowStyle Normal;
+	Start-Process -FilePath $app -ArgumentList $args -Verb runAs -WindowStyle Normal -Wait;
 	exit
 	
 	

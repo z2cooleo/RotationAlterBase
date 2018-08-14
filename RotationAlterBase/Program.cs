@@ -7,7 +7,7 @@ namespace RotationAlterBase
 {
     class Program
     {
-        static string ver = "19";
+        static string ver = "23";
         static string currDbID;
         static string currDbType;
         static string currDbPort;
@@ -28,6 +28,7 @@ namespace RotationAlterBase
         static string slowTableSpacePath;
         static string fgStConfigXML;
         static string fgStConfigYaml;
+        static string maintenanceDB;
 
         static void Main(string[] args)
         {
@@ -36,9 +37,12 @@ namespace RotationAlterBase
             else if (currDbType == "pgsql" && prevDbType == "pgsql")
             {
                 Services.StopService(new string[] {"FgStStorageServer", "FgStSearchSvc" });
-                WorkDB.CloseConnection(currDbHost, currDbPort, currDbUser, currDbPass, currDbname);
-                WorkDB.ChangeTablespace(prevDbHost, prevDbPort, prevDbUser, prevDbPass, prevDbname, slowTableSpace);
-                WorkDB.ChangeTablespace(currDbHost, currDbPort, currDbUser, currDbPass, currDbname, fastTableSpace);
+                WorkDB.MaintenanceModeDB(currDbHost, currDbPort, currDbUser, currDbPass, maintenanceDB, currDbname, prevDbname, "TurnOn");
+                WorkDB.CloseConnection(currDbHost, currDbPort, currDbUser, currDbPass, currDbname, maintenanceDB);
+                WorkDB.CloseConnection(currDbHost, currDbPort, currDbUser, currDbPass, prevDbname, maintenanceDB);
+                WorkDB.ChangeTablespace(prevDbHost, prevDbPort, prevDbUser, prevDbPass, maintenanceDB, prevDbname, slowTableSpace);
+                WorkDB.ChangeTablespace(currDbHost, currDbPort, currDbUser, currDbPass, maintenanceDB, currDbname, fastTableSpace);
+                WorkDB.MaintenanceModeDB(currDbHost, currDbPort, currDbUser, currDbPass, maintenanceDB, currDbname, prevDbname, "TurnOff");
                 XMLWork.XMLFix(fgStConfigXML, currDbID, fastTableSpacePath);
                 XMLWork.XMLFix(fgStConfigXML, prevDbID, slowTableSpacePath);
                 YamlWork.YamlFix(fgStConfigYaml, currDbID, fastTableSpacePath, slowTableSpacePath);
@@ -80,7 +84,7 @@ namespace RotationAlterBase
                     case "fastTableSpace":
                         if (GetVar(item) == "auto")
                         {
-                            string str = WorkDB.GetTablespaceName(prevDbHost, prevDbPort, prevDbUser, prevDbPass, prevDbname);
+                            string str = WorkDB.GetTablespaceName(prevDbHost, prevDbPort, prevDbUser, prevDbPass, prevDbname, maintenanceDB);
                             WriteLog.Write("fastTableSpacePath", str);
                             fastTableSpace = WriteLog.Write("fastTablespace", str);
                         }
@@ -92,7 +96,7 @@ namespace RotationAlterBase
                     case "slowTableSpace":
                         if (GetVar(item) == "auto")
                         {
-                            string str = WorkDB.GetTablespaceName(currDbHost, currDbPort, currDbUser, currDbPass, currDbname);
+                            string str = WorkDB.GetTablespaceName(currDbHost, currDbPort, currDbUser, currDbPass, currDbname, maintenanceDB);
                             WriteLog.Write("fastTableSpacePath", str);
                             slowTableSpace = WriteLog.Write("fastTablespace", str);
                         }
@@ -107,6 +111,7 @@ namespace RotationAlterBase
                         slowTableSpacePath = GetVar(item) == "auto" ? WriteLog.Write("slowTableSpacePath", XMLWork.GetPath(fgStConfigXML, currDbID)) : item; break;
                     case "fgStConfigXML": fgStConfigXML = WriteLog.Write("XMLconfigPath", GetVar(item)); break;
                     case "fgStConfigYaml": fgStConfigYaml = WriteLog.Write("YamlConfigPath", GetVar(item)); break;
+                    case "maintenanceDB": maintenanceDB = WriteLog.Write("maintenanceDB", GetVar(item)); break;
                 }
             }
         }
